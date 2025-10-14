@@ -1,0 +1,30 @@
+graph TD
+    subgraph "Farm Edge"
+        Sensors[Sensors & IoT Devices]
+        EdgeGateway[Edge Gateway]
+        Sensors -->|Raw Data| EdgeGateway
+        EdgeGateway -->|Local Processing| EdgeGateway
+    end
+
+    subgraph "Cloud Services"
+        IoTCore[AWS IoT Core]
+        DataStorage[S3 & PostgreSQL]
+        MLPipeline[SageMaker ML Pipeline]
+        APILayer[GraphQL/REST API]
+        
+        IoTCore -->|Message Routing| DataStorage
+        DataStorage <-->|Training Data| MLPipeline
+        MLPipeline -->|Predictions| APILayer
+        DataStorage <-->|Query/Store| APILayer
+    end
+
+    subgraph "Clients"
+        WebApp[Web Portal]
+        MobileApp[Mobile App]
+        
+        WebApp <-->|API Calls| APILayer
+        MobileApp <-->|API Calls| APILayer
+    end
+
+    EdgeGateway -->|Preprocessed Data| IoTCore
+    IoTCore -->|Commands| EdgeGateway

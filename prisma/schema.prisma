@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  fullName      String?
+  role          String    @default("farmer")
+  accounts      Account[]
+  sessions      Session[]
+  fields        Field[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model Field {
+  id            String          @id @default(uuid())
+  name          String
+  area          Float
+  soilType      String?
+  createdBy     User           @relation(fields: [userId], references: [id])
+  userId        String
+  fieldCrops    FieldCrop[]
+  alerts        Alert[]
+  sensorReadings SensorReading[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("fields")
+}
+
+model Crop {
+  id               String      @id @default(uuid())
+  name             String
+  variety          String?
+  growingSeasonDays Int?
+  fieldCrops       FieldCrop[]
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@map("crops")
+}
+
+model FieldCrop {
+  id                 String   @id @default(uuid())
+  field              Field    @relation(fields: [fieldId], references: [id])
+  fieldId            String
+  crop               Crop     @relation(fields: [cropId], references: [id])
+  cropId             String
+  plantingDate       DateTime
+  expectedHarvestDate DateTime
+  status             String   @default("planned")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("field_crops")
+}
+
+model Alert {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  type      String
+  field     Field    @relation(fields: [fieldId], references: [id])
+  fieldId   String
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("alerts")
+}
+
+model SensorReading {
+  id          String   @id @default(uuid())
+  field       Field    @relation(fields: [fieldId], references: [id])
+  fieldId     String
+  sensorType  String
+  value       Float
+  unit        String
+  timestamp   DateTime @default(now())
+
+  @@map("sensor_readings")
+}
