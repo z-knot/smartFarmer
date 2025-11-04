@@ -131,7 +131,7 @@ export default function PredictionsPage() {
         fieldName: `Field ${fieldId}`,
         type: type as any,
         result,
-        confidence: result.confidence || 85,
+        confidence: 85,
         timestamp: new Date().toISOString(),
         status: 'completed'
       };
